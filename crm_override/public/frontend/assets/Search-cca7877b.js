@@ -1,0 +1,2 @@
+import{_ as t,a as s,c as a,d as c,f as o}from"./index-69690053.js";const r={class:"flex items-center justify-center h-screen"},n={__name:"Search",setup(_){return s(()=>{window.location.href="https://crm-demo.fr8labs.co/app/organization-search"}),(d,e)=>(o(),a("div",r,[...e[0]||(e[0]=[c("p",{class:"text-gray-500"},"Redirecting to Search...",-1)])]))}},i=t(n,[["__scopeId","data-v-6753d033"]]);export{i as default};
+//# sourceMappingURL=Search-cca7877b.js.map
