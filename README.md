@@ -8,8 +8,8 @@ You can install this app using the [bench](https://github.com/frappe/bench) CLI:
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch develop
-bench install-app crm_override
+bench get-app crm_override https://github.com/lijsamuael/crm_override.git
+bench --site <your site name> install-app crm_override
 ```
 
 ### Contributing
