@@ -83,26 +83,30 @@
           :isSidebarCollapsed="isSidebarCollapsed"
           :afterUpgrade="() => capture('upgrade_plan_from_trial_banner')"
         />
-        <GettingStartedBanner
-          v-if="!isOnboardingStepsCompleted"
-          :isSidebarCollapsed="isSidebarCollapsed"
-        />
+        <!--
+	<GettingStartedBanner
+  	  v-if="!isOnboardingStepsCompleted"
+  	  :isSidebarCollapsed="isSidebarCollapsed"
+	/>
+	-->
       </div>
+<!--
       <SidebarLink
-        v-if="isOnboardingStepsCompleted"
-        :label="__('Help')"
-        :isCollapsed="isSidebarCollapsed"
-        @click="
-          () => {
-            showHelpModal = minimize ? true : !showHelpModal
-            minimize = !showHelpModal
-          }
-        "
-      >
-        <template #icon>
-          <HelpIcon class="h-4 w-4" />
-        </template>
-      </SidebarLink>
+  v-if="isOnboardingStepsCompleted"
+  :label="__('Help')"
+  :isCollapsed="isSidebarCollapsed"
+  @click="
+    () => {
+      showHelpModal = minimize ? true : !showHelpModal
+      minimize = !showHelpModal
+    }
+  "
+>
+  <template #icon>
+    <HelpIcon class="h-4 w-4" />
+  </template>
+</SidebarLink>
+-->
       <SidebarLink
         :label="isSidebarCollapsed ? __('Expand') : __('Collapse')"
         :isCollapsed="isSidebarCollapsed"
@@ -121,6 +125,7 @@
     </div>
     <Notifications />
     <Settings />
+<!--
     <HelpModal
       v-if="showHelpModal"
       v-model="showHelpModal"
@@ -132,6 +137,7 @@
       :afterResetAll="() => capture('onboarding_steps_reset')"
       docsLink="https://docs.frappe.io/crm"
     />
+-->
     <IntermediateStepModal
       v-model="showIntermediateModal"
       :currentStep="currentStep"
