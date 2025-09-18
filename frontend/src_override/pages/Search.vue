@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center justify-center h-screen">
-    <p class="text-gray-500">Redirecting to Search...</p>
+    <p class="text-gray-500">Opening Search in a new tab...</p>
   </div>
 </template>
 
@@ -8,8 +8,11 @@
 import { onMounted } from 'vue'
 
 onMounted(() => {
-  // Redirect to your external search page
-  window.location.href = 'https://crm-demo.fr8labs.co/app/organization-search'
+  // Build base URL dynamically
+  const baseUrl = `${window.location.protocol}//${window.location.host}`
+
+  // Open in a new tab
+  window.open(`${baseUrl}/app/organization-search`, '_blank')
 })
 </script>
 
