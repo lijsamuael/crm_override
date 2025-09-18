@@ -240,7 +240,7 @@ const links = [
     to: 'Tasks',
   },
   {
-    label: 'Search',
+    label: 'Organization Search',
     icon: HelpIcon,
     to: 'Search'
   }
