@@ -1,13 +1,13 @@
 <template>
   <div class="min-h-screen bg-white">
-    <!-- Container sits closer to the top -->
-    <div class="mx-auto w-full max-w-3xl pt-4 px-4">
+    <div class="mx-auto w-full max-w-3xl pt-24 px-4">
       <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div class="px-6 py-5">
-          <!-- Title -->
-          <h1 class="text-center text-lg font-semibold text-gray-800 mb-3">Organization Search</h1>
+          <h1 class="text-center text-lg font-semibold text-gray-800 mb-3">
+            Organization Search
+          </h1>
 
-          <!-- Search row -->
+          <!-- Search input -->
           <div class="flex items-center gap-3">
             <input
               v-model="query"
@@ -24,11 +24,12 @@
             </button>
           </div>
 
-          <!-- Results / helpers -->
+          <!-- Results -->
           <div class="mt-4">
             <div v-if="loading" class="text-center text-gray-500">Searching...</div>
 
-            <div v-else-if="!loading && searched && results.length === 0" class="mt-3 rounded-md bg-amber-50 p-4 text-amber-800">
+            <div v-else-if="!loading && searched && results.length === 0"
+              class="mt-3 rounded-md bg-amber-50 p-4 text-amber-800">
               <div class="font-medium mb-2">No organizations found. Try:</div>
               <ul class="list-disc pl-5 space-y-1 text-sm">
                 <li>Check spelling</li>
@@ -43,16 +44,12 @@
                 :key="org.name"
                 class="rounded-md border border-gray-100 bg-white px-4 py-3 hover:bg-slate-50"
               >
-                <div class="text-sm font-bold text-gray-800">{{ org.organization_name || org.name }}</div>
+                <div class="text-sm font-bold text-gray-800">
+                  {{ org.organization_name || org.name }}
+                </div>
                 <div class="text-xs text-gray-500 mt-0.5">ID: {{ org.name }}</div>
-                <div class="mt-1.5">
-                  <a
-                    :href="orgLink(org)"
-                    class="text-xs text-slate-600 hover:underline"
-                    target="_self"
-                  >
-                    Open in CRM
-                  </a>
+                <div class="text-xs text-gray-500 mt-0.5">
+                  Owner: {{ org.custom_organization_owner || "Not Assigned" }}
                 </div>
               </div>
             </div>
@@ -62,6 +59,7 @@
     </div> <!-- container -->
   </div>
 </template>
+
 
 <script setup>
 import { ref, watch } from 'vue'
@@ -94,12 +92,10 @@ async function searchNow() {
   try {
     const base = window.location.origin
     const params = new URLSearchParams()
-    params.append('fields', JSON.stringify(['name', 'organization_name']))
-    params.append('filters', JSON.stringify([['organization_name', 'like', `%${q}%`]]))
-    params.append('limit_page_length', '20')
+    params.append('search_query', q)
 
-    // ✅ CRM Organization
-    const url = `${base}/api/resource/CRM Organization?${params.toString()}`
+    // Call your API: crm_override.app
+    const url = `${base}/api/method/crm_override.api.search_organizations_external?${params.toString()}`
     const resp = await fetch(url, {
       method: 'GET',
       credentials: 'include',
@@ -109,8 +105,12 @@ async function searchNow() {
     if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
     const json = await resp.json()
-    const data = json.data || json.message || []
-    results.value = Array.isArray(data) ? data : []
+    // ✅ Adjusted: results are under json.message.data
+    results.value = (json.message?.data || []).map(org => ({
+      name: org.name,
+      organization_name: org.organization_name,
+      custom_organization_owner: org.custom_organization_owner || 'N/A'
+    }))
   } catch (err) {
     console.error('Search error:', err)
     error.value = err.message || String(err)
@@ -136,9 +136,9 @@ watch(
 )
 </script>
 
+
 <style scoped>
 input::placeholder {
   color: #9aa0a6;
 }
 </style>
-
