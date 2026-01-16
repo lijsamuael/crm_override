@@ -13,7 +13,7 @@
           :label="__('Notifications')"
           :icon="NotificationsIcon"
           :isCollapsed="isSidebarCollapsed"
-          @click="() => toggleNotificationPanel()"
+          @click="toggleNotificationPanel"
           class="relative mx-2 my-0.5"
         >
           <template #right>
@@ -43,12 +43,11 @@
             <div
               v-if="!hide"
               class="flex cursor-pointer gap-1.5 px-1 text-base font-medium text-ink-gray-5 transition-all duration-300 ease-in-out"
-              :class="
-                isSidebarCollapsed
-                  ? 'ml-0 h-0 overflow-hidden opacity-0'
-                  : 'ml-2 mt-4 h-7 w-auto opacity-100'
-              "
-              @click="toggle()"
+              :class="{
+                'ml-0 h-0 overflow-hidden opacity-0': isSidebarCollapsed,
+                'ml-2 mt-4 h-7 w-auto opacity-100': !isSidebarCollapsed
+              }"
+              @click="toggle"
             >
               <FeatherIcon
                 name="chevron-right"
@@ -61,6 +60,7 @@
           <nav class="flex flex-col">
             <SidebarLink
               v-for="link in view.views"
+              :key="link.label"
               :icon="link.icon"
               :label="__(link.label)"
               :to="link.to"
@@ -72,7 +72,7 @@
       </div>
     </div>
     <div class="m-2 flex flex-col gap-1">
-      <div class="flex flex-col gap-2 mb-1">
+      <div class="mb-1 flex flex-col gap-2">
         <SignupBanner
           v-if="isDemoSite"
           :isSidebarCollapsed="isSidebarCollapsed"
@@ -83,24 +83,20 @@
           :isSidebarCollapsed="isSidebarCollapsed"
           :afterUpgrade="() => capture('upgrade_plan_from_trial_banner')"
         />
-        <GettingStartedBanner
-          v-if="!isOnboardingStepsCompleted"
-          :isSidebarCollapsed="isSidebarCollapsed"
-        />
       </div>
       <SidebarLink
-        v-if="isOnboardingStepsCompleted"
-        :label="__('Help')"
+        :label="__('Clear cookies & Logout')"
         :isCollapsed="isSidebarCollapsed"
-        @click="
-          () => {
-            showHelpModal = minimize ? true : !showHelpModal
-            minimize = !showHelpModal
-          }
-        "
+        @click="showConfirmClearCookies = true"
+        class=""
       >
         <template #icon>
-          <HelpIcon class="h-4 w-4" />
+          <span class="grid h-4 w-4 flex-shrink-0 place-items-center">
+            <FeatherIcon
+              name="trash-2"
+              class="h-4 w-4 text-ink-gray-7"
+            />
+          </span>
         </template>
       </SidebarLink>
       <SidebarLink
@@ -121,23 +117,36 @@
     </div>
     <Notifications />
     <Settings />
-    <HelpModal
-      v-if="showHelpModal"
-      v-model="showHelpModal"
-      v-model:articles="articles"
-      :logo="CRMLogo"
-      :afterSkip="(step) => capture('onboarding_step_skipped_' + step)"
-      :afterSkipAll="() => capture('onboarding_steps_skipped')"
-      :afterReset="(step) => capture('onboarding_step_reset_' + step)"
-      :afterResetAll="() => capture('onboarding_steps_reset')"
-      docsLink="https://docs.frappe.io/crm"
-    />
+    <div
+      v-if="showConfirmClearCookies"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h2 class="text-lg font-semibold mb-4">{{ __('Confirm Clear Cookies') }}</h2>
+        <p class="mb-6">{{ __('Are you sure you want to clear all cookies? This will refresh the page.') }}</p>
+        <div class="flex justify-end gap-4">
+          <button
+            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            @click="showConfirmClearCookies = false"
+          >
+            {{ __('Cancel') }}
+          </button>
+          <button
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            @click="forceClearAll"
+          >
+            {{ __('Confirm') }}
+          </button>
+        </div>
+      </div>
+    </div>
     <IntermediateStepModal
       v-model="showIntermediateModal"
       :currentStep="currentStep"
     />
   </div>
 </template>
+
 
 <script setup>
 import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
@@ -234,7 +243,7 @@ const links = [
     to: 'Tasks',
   },
   {
-    label: 'Search',
+    label: 'Organization Search',
     icon: HelpIcon,
     to: 'Search'
   }
@@ -306,6 +315,62 @@ function getIcon(routeName, icon) {
       return PinIcon
   }
 }
+
+const showConfirmClearCookies = ref(false)
+
+async function forceClearAll() {
+  console.log('Before clear:')
+  console.log('Cookies:', document.cookie)
+  console.log('localStorage:', { ...localStorage })
+  console.log('sessionStorage:', { ...sessionStorage })
+
+  // Clear all cookies
+  document.cookie.split(';').forEach(cookie => {
+    const eqPos = cookie.indexOf('=')
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + location.hostname
+  })
+
+  // Clear storages
+  localStorage.clear()
+  sessionStorage.clear()
+
+  console.log('After clear:')
+  console.log('Cookies:', document.cookie)
+  console.log('localStorage:', { ...localStorage })
+  console.log('sessionStorage:', { ...sessionStorage })
+
+  try {
+    const base = window.location.origin
+
+    // 1️⃣ Fetch CSRF token
+    const csrfResp = await fetch(`${base}/api/method/crm_override.api.get_csrf_token`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    })
+    if (!csrfResp.ok) throw new Error(`${csrfResp.status} ${csrfResp.statusText}`)
+    const csrfData = await csrfResp.json()
+    const csrf_token = csrfData.message?.csrf_token
+
+    // 2️⃣ Call force logout API via GET with query param
+    const params = new URLSearchParams({ csrf_token })
+    const logoutResp = await fetch(`${base}/api/method/crm_override.api.force_logout?${params.toString()}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    })
+    if (!logoutResp.ok) throw new Error(`${logoutResp.status} ${logoutResp.statusText}`)
+    console.debug('Force logout successful')
+  } catch (err) {
+    console.warn('Force logout failed', err)
+  }
+
+  // Reload page
+  location.reload()
+}
+
 
 // onboarding
 const { user } = sessionStore()

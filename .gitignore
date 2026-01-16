@@ -6,3 +6,11 @@ tags
 node_modules
 frontend/node_modules
 __pycache__
+
+# Frontend build artifacts - DO NOT COMMIT THESE
+crm_override/public/frontend/assets/
+crm_override/public/frontend/index.html
+crm_override/public/frontend/sw.js
+crm_override/public/frontend/sw.js.map
+crm_override/public/frontend/manifest.webmanifest
+crm_override/public/frontend/registerSW.js

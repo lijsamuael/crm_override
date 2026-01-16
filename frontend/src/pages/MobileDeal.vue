@@ -431,11 +431,6 @@ const tabs = computed(() => {
       icon: ActivityIcon,
     },
     {
-      name: 'Emails',
-      label: __('Emails'),
-      icon: EmailIcon,
-    },
-    {
       name: 'Comments',
       label: __('Comments'),
       icon: CommentIcon,
@@ -444,12 +439,6 @@ const tabs = computed(() => {
       name: 'Data',
       label: __('Data'),
       icon: DetailsIcon,
-    },
-    {
-      name: 'Calls',
-      label: __('Calls'),
-      icon: PhoneIcon,
-      condition: () => callEnabled.value,
     },
     {
       name: 'Tasks',
