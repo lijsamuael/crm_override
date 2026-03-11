@@ -51,6 +51,11 @@
                 <div class="text-xs text-gray-500 mt-0.5">
                   Owner: {{ org.custom_organization_owner || "Not Assigned" }}
                 </div>
+                <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500">
+                  <span v-if="org.last_shipment_date">Last Shipment: {{ org.last_shipment_date }}</span>
+                  <span>Shipments: {{ org.total_shipments }}</span>
+                  <span>Last 6mo: {{ org.shipment_count_last_6_months }} shipments</span>
+                </div>
               </div>
             </div>
           </div>
@@ -109,7 +114,10 @@ async function searchNow() {
     results.value = (json.message?.data || []).map(org => ({
       name: org.name,
       organization_name: org.organization_name,
-      custom_organization_owner: org.custom_organization_owner || 'N/A'
+      custom_organization_owner: org.custom_organization_owner || 'N/A',
+      last_shipment_date: org.last_shipment_date || null,
+      total_shipments: org.total_shipments ?? 0,
+      shipment_count_last_6_months: org.shipment_count_last_6_months ?? 0,
     }))
   } catch (err) {
     console.error('Search error:', err)

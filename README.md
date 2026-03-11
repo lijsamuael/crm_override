@@ -1,6 +1,6 @@
-### Crm Override
+### CRM Override
 
-A custom app to overide the ui in the crm portal
+A custom app to override the UI in the CRM portal.
 
 ### Installation
 
@@ -10,6 +10,44 @@ You can install this app using the [bench](https://github.com/frappe/bench) CLI:
 cd $PATH_TO_YOUR_BENCH
 bench get-app crm_override https://github.com/lijsamuael/crm_override.git
 bench --site <your site name> install-app crm_override
+```
+
+### Building the Frontend (Required)
+
+**Important:** Frontend build artifacts are NOT committed to the repository. You must build the frontend after cloning or pulling changes.
+
+```bash
+cd $PATH_TO_YOUR_BENCH/apps/crm_override
+yarn install
+yarn build
+```
+
+Then build the Frappe assets:
+
+```bash
+cd $PATH_TO_YOUR_BENCH
+bench build --app crm_override
+```
+
+### After Pulling Changes
+
+Every time you pull changes from the repository, run:
+
+```bash
+cd $PATH_TO_YOUR_BENCH/apps/crm_override
+yarn build
+cd $PATH_TO_YOUR_BENCH
+bench build --app crm_override
+bench restart  # if on production
+```
+
+### Development
+
+For local development with hot-reload:
+
+```bash
+cd $PATH_TO_YOUR_BENCH/apps/crm_override
+yarn dev
 ```
 
 ### Contributing

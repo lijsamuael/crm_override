@@ -49,10 +49,17 @@ def search_organizations_external(search_query=None):
     try:
         results = frappe.get_all(
             "CRM Organization",
-            fields=["name", "organization_name", "custom_organization_owner"],
+            fields=[
+                "name",
+                "organization_name",
+                "custom_organization_owner",
+                "last_shipment_date",
+                "total_shipments",
+                "shipment_count_last_6_months",
+            ],
             filters=[["organization_name", "like", f"%{search_query}%"]],
             limit_page_length=20,
-            ignore_permissions=True,   # ✅ this works inside frappe
+            ignore_permissions=True,
         )
         return {"data": results}
 
