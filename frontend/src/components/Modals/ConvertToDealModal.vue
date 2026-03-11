@@ -76,6 +76,27 @@
         :data="deal.doc"
         doctype="CRM Deal"
       />
+
+      <div v-if="isMalaysia" class="mt-4">
+        <div class="mb-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+          {{ __('This lead is from Malaysia. State and City are required for e-invoicing compliance.') }}
+        </div>
+        <div class="flex flex-col gap-3">
+          <FormControl
+            type="select"
+            :label="__('State')"
+            v-model="malaysiaState"
+            :options="malaysiaStateOptions"
+          />
+          <FormControl
+            type="text"
+            :label="__('City')"
+            v-model="malaysiaCity"
+            :placeholder="__('e.g. Kuala Lumpur')"
+          />
+        </div>
+      </div>
+
       <ErrorMessage class="mt-4" :message="error" />
     </template>
     <template #actions>
@@ -126,6 +147,29 @@ const existingContact = ref('')
 const existingOrganization = ref('')
 const error = ref('')
 
+const MALAYSIA_STATES = [
+  'Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan',
+  'Pahang', 'Pulau Pinang', 'Perak', 'Perlis', 'Selangor',
+  'Terengganu', 'Sabah', 'Sarawak',
+  'Wilayah Persekutuan Kuala Lumpur',
+  'Wilayah Persekutuan Labuan',
+  'Wilayah Persekutuan Putrajaya',
+  'Not Applicable'
+]
+
+const malaysiaStateOptions = MALAYSIA_STATES.map(s => ({ label: s, value: s }))
+const malaysiaState = ref('')
+const malaysiaCity = ref('')
+
+const siteDefaultCountry = ref('')
+call('fr8labs_custom_crm.fr8labs_custom_crm.sync_customer_fr8labs.app_utils.get_site_default_country').then((r) => {
+  siteDefaultCountry.value = r || ''
+})
+
+const isMalaysia = computed(() => {
+  return siteDefaultCountry.value === 'Malaysia' && props.lead?.custom_country === 'Malaysia'
+})
+
 const { triggerConvertToDeal } = useDocument('CRM Lead', props.lead.name)
 const { document: deal } = useDocument('CRM Deal')
 
@@ -150,14 +194,30 @@ async function convertToDeal() {
     existingOrganization.value = ''
   }
 
+  if (isMalaysia.value) {
+    if (!malaysiaState.value) {
+      malaysiaState.value = 'Not Applicable'
+    }
+    if (!(malaysiaCity.value || '').trim()) {
+      error.value = __('City is required for Malaysian organizations')
+      return
+    }
+  }
+
   await triggerConvertToDeal?.(props.lead, deal.doc, () => (show.value = false))
 
-  let _deal = await call('crm.fcrm.doctype.crm_lead.crm_lead.convert_to_deal', {
+  let convertArgs = {
     lead: props.lead.name,
     deal: deal.doc,
     existing_contact: existingContact.value,
     existing_organization: existingOrganization.value,
-  }).catch((err) => {
+  }
+  if (isMalaysia.value) {
+    convertArgs.malaysia_state = malaysiaState.value
+    convertArgs.malaysia_city = malaysiaCity.value
+  }
+
+  let _deal = await call('crm.fcrm.doctype.crm_lead.crm_lead.convert_to_deal', convertArgs).catch((err) => {
     if (err.exc_type == 'MandatoryError') {
       const errorMessage = err.messages
         .map((msg) => {
@@ -181,6 +241,8 @@ async function convertToDeal() {
     existingOrganizationChecked.value = false
     existingContact.value = ''
     existingOrganization.value = ''
+    malaysiaState.value = ''
+    malaysiaCity.value = ''
     error.value = ''
     updateOnboardingStep('convert_lead_to_deal', true, false, () => {
       localStorage.setItem('firstDeal' + user, _deal)
