@@ -52,7 +52,7 @@
                   Owner: {{ org.custom_organization_owner || "Not Assigned" }}
                 </div>
                 <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500">
-                  <span v-if="org.last_shipment_date">Last Shipment: {{ org.last_shipment_date }}</span>
+                  <span v-if="org.last_shipment_date">Last Shipment: {{ org.last_shipment_date.split('T')[0] }}</span>
                   <span>Shipments: {{ org.total_shipments }}</span>
                   <span>Last 6mo: {{ org.shipment_count_last_6_months }} shipments</span>
                 </div>
