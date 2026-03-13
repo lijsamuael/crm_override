@@ -52,9 +52,9 @@
                   Owner: {{ org.custom_organization_owner || "Not Assigned" }}
                 </div>
                 <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500">
-                  <span v-if="org.last_shipment_date">Last Shipment: {{ org.last_shipment_date.split('T')[0] }}</span>
+                  <span v-if="org.last_shipment_date">Last Shipment: {{ formatDate(org.last_shipment_date) }}</span>
                   <span>Shipments: {{ org.total_shipments }}</span>
-                  <span>Last 6mo: {{ org.shipment_count_last_6_months }} shipments</span>
+                  <span>Last 6 mths: {{ org.shipment_count_last_6_months }} shipments</span>
                 </div>
               </div>
             </div>
@@ -68,6 +68,13 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = dateStr.split('T')[0] // strip time if present
+  const [y, m, day] = d.split('-')
+  return `${day}-${m}-${y}`
+}
 
 const query = ref('')
 const results = ref([])
